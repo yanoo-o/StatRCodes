@@ -1,0 +1,103 @@
+---
+title: "Assignment 6 - PCA"
+author: "Mariano Niño Oliva"
+date: "1/21/2022"
+output: 
+  html_document:
+    keep_md: true
+---
+
+# Packages
+
+```{r}
+library("tidyverse")
+library("FactoMineR")
+library("ggthemes")
+```
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#Assignment 6 - PCA on Pokemon Dataset
+
+```{r cars}
+getwd()
+pokemon <- read.csv("Pokemon.csv")
+colnames(pokemon)
+```
+
+We extract the needed variables for analysis.
+```{r}
+poke <- pokemon %>%
+  select(HP, Attack, Defense, Sp_Atk, Sp_Def, Speed)
+
+head(poke)
+```
+
+
+Since the units of measurement for the variables are not uniform, we perform PCA with standardization
+
+##Using *prcomp* function
+
+```{r}
+pc_poke1 <- prcomp(x = poke, scale. = T)
+summary(pc_poke1)
+
+pc_poke1$sdev
+pc_poke1$rotation
+```
+
+We use another function for comparison
+
+# Using *princomp* function
+```{r}
+pc_poke2 <- princomp(x = poke, cor = T)
+summary(pc_poke2)
+
+```
+
+# Using *PCA* function
+## With standardizing
+```{r}
+pc_poke3 <- PCA(X = poke, scale.unit = TRUE, ncp = 6)
+summary(pc_poke3)
+pc_poke3$eig
+```
+
+**Scree Plot**
+```{r}
+tibble(eigenvalues = pc_poke3$eig[,1], PC = 1:6) %>%
+  ggplot(aes(y = eigenvalues, x = PC)) +
+  geom_point() +
+  geom_line()
+```
+
+We compute the PC scores for the pokemons
+
+
+```{r}
+pc_scores <- as.data.frame(pc_poke2$scores)
+head(pc_scores)
+with_scores <- bind_cols(pokemon, pc_scores)
+with_scores
+```
+
+## PC1 vs. PC2 
+
+```{r}
+with_scores %>%
+  mutate(id = row_number()) %>%
+  ggplot(aes(x = Comp.1, y = Comp.2)) +
+  geom_text(aes(label = id), col = "red") +
+  geom_point()
+```
+
+```{r}
+with_scores[231,] %>%
+  select(HP, Attack, Defense, Sp_Atk, Sp_Def, Speed)
+with_scores[430,] %>%
+  select(HP, Attack, Defense, Sp_Atk, Sp_Def, Speed)
+with_scores[435,] %>%
+  select(HP, Attack, Defense, Sp_Atk, Sp_Def, Speed)
+```
