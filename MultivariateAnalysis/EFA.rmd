@@ -1,0 +1,115 @@
+---
+title: "Principal Component Analysis"
+author: "Mariano Niño Oliva"
+date: "1/24/2022"
+output: 
+html_document:
+    keep_md: true
+---
+
+#Loading Packages
+```{r}
+library(psych)
+library(GPArotation)
+library(readxl)
+library(writexl)
+```
+
+
+We read the data from the the excel file
+```{r}
+vitamin <- read_xlsx("vitamins example data.xlsx")
+vitamin
+vitamin_red <- subset(vitamin, select = -c(p12,p14))
+vitamin_red
+```
+
+Measure for data adequacy
+
+Bartlett's Test for Sphericity
+```{r}
+psych::cortest.bartlett(R = cor(vitamin), n = 300)
+psych::KMO(r = vitamin)
+psych::KMO(r = vitamin_red)
+```
+Initial EFA using PC Method
+```{r}
+pc_vit <- princomp(vitamin_red)
+summary(pc_vit)
+tibble(eigenvalues = pc_vit$sdev, PC = 1:21) %>%
+  ggplot(aes(y = eigenvalues, x = PC)) +
+  geom_point() +
+  geom_line()
+```
+
+## Exploratory Factor Analysis
+
+7-Factor Solution
+Both Varimax and Quartimax Rotation
+```{r}
+fa_vit7.1 <- psych::fa(r = vitamin, nfactors = 7, rotate = "varimax", scores = "regression", SMC = T, fm = "pa")
+summary(fa_vit7.1)
+print(fa_vit7.1)
+
+fa_vit7.2 <- psych::fa(r = vitamin, nfactors = 7, rotate = "quartimax", scores = "regression", SMC = T, fm = "pa")
+summary(fa_vit7.2)
+print(fa_vit7.2)
+```
+6-Factor Solution
+```{r}
+fa_vit6.1 <- psych::fa(r = vitamin, nfactors = 6, rotate = "varimax", scores = "regression", SMC = T, fm = "pa")
+summary(fa_vit6.1)
+print(fa_vit6.1)
+
+fa_vit6.2 <- psych::fa(r = vitamin, nfactors = 6, rotate = "quartimax", scores = "regression", SMC = T, fm = "pa")
+summary(fa_vit6.2)
+print(fa_vit6.2)
+
+```
+8-Factor Solution
+```{r}
+fa_vit8.1 <- psych::fa(r = vitamin, nfactors = 8, rotate = "varimax", scores = "regression", SMC = T, fm = "pa")
+summary(fa_vit8.1)
+print(fa_vit8.1)
+
+fa_vit8.2 <- psych::fa(r = vitamin, nfactors = 8, rotate = "quartimax", scores = "regression", SMC = T, fm = "pa")
+summary(fa_vit8.2)
+print(fa_vit8.2)
+```
+5-Factor Solution
+```{r}
+fa_vit5.1 <- psych::fa(r = vitamin, nfactors = 5, rotate = "varimax", scores = "regression", SMC = T, fm = "pa")
+summary(fa_vit5.1)
+print(fa_vit5.1)
+
+fa_vit5.2 <- psych::fa(r = vitamin, nfactors = 5, rotate = "quartimax", scores = "regression", SMC = T, fm = "pa")
+summary(fa_vit5.2)
+print(fa_vit5.2)
+```
+4-Factor Solution
+```{r}
+fa_vit4.1 <- psych::fa(r = vitamin, nfactors = 4, rotate = "varimax", scores = "regression", SMC = T, fm = "pa")
+summary(fa_vit4.1)
+print(fa_vit4.1)
+
+fa_vit4.2 <- psych::fa(r = vitamin, nfactors = 4, rotate = "quartimax", scores = "regression", SMC = T, fm = "pa")
+summary(fa_vit4.2)
+print(fa_vit4.2)
+```
+5-Factor Solution for 21 variables
+```{r}
+fa_vit5.1.1 <- psych::fa(r = vitamin_red, nfactors = 5, rotate = "varimax", scores = "regression", SMC = T, fm = "pa")
+summary(fa_vit5.1)
+print(fa_vit5.1.1)
+
+
+```
+Printing the final solution
+```{r}
+print(fa_vit5.1$loadings)
+fa.sort(fa_vit5.1.1)
+
+fa_res <- unclass(fa.sort(fa_vit5.1.1$loadings))
+fa_res <- as.data.frame(fa_res)
+write_xlsx(fa_res,"C:/Users/Admin/Downloads\\EFA_A7_Oliva.1.xlsx" )
+```
