@@ -1,0 +1,162 @@
+---
+output:
+  html_document:
+    keep_md: true
+title: "Regression of Expenditure on Population"
+---
+
+***
+_Fri Jan 15, 2021 at 20:53 &nbsp; with lessR version 3.9.9_
+
+_Output Options: explain=TRUE, interpret=TRUE, results=TRUE, document=FALSE, code=FALSE_
+
+***
+```{r echo=FALSE}
+suppressPackageStartupMessages(library(lessR))  # lessR
+```
+
+## The Data
+Read the data.
+The corresponding data values for the variables in the model comprise the _training data_, from which the model is estimated. 
+
+```{r, echo=FALSE}
+expe <- Read("Regional Expendityre.xlsx")
+```
+
+## The Model
+
+### Specified Model
+Express Expenditure as a linear function of one predictor variable: Population. 
+Within the context of the model, indicate the response variable with a Y, subscripted by the variable name, $Y_{Expenditure}$. Write each predictor variable as a subscript to an X. From the training data compute $\hat Y_{Expenditure}$, the _fitted value_ of the response variable from the model for a specific set of values for Population. 
+$$\hat Y_{Expenditure} = b_0 + b_1 X_{Population}$$
+The _intercept_, $b_0$, indicates the fitted value of Expenditure, for values of Population all equal to zero.
+The _slope coefficient_, $b_1$ , is the average change in the value of response variable, Expenditure, for a one-unit increase in the value of the corresponding predictor variable. The values of these estimated coefficients only apply to the interpretation of the training data from which they were estimated. 
+
+To compute $\hat Y_{Expenditure}$ from a specific set of values for Population requires the estimated values of the coefficients of the model, the values of each regression coefficient, $b_j$. This estimation procedure depends on the _residual_, the difference between the actual value of Expenditure for each row of data and the corresponding value fitted by the model. Define the residual as a variable across all rows of data. Use the subscript _i_ to indicate the $i^{th}$ row of data to emphasize that the expression applies to _each_ row of training data. The name of the response variable in this notation is understood and so is omitted for simplicity. 
+$$e_i = Y_i - \hat Y_i$$
+Estimate the coefficients with ordinary least squares (OLS), which provides the one set of estimates that minimize the sum of the squared residuals, $\sum e^2_i$, across all the rows of the training data. 
+The output begins with a specification of the variables in the model and a brief description of the data. 
+
+```{r, echo=FALSE}
+r$out_background
+```
+
+Of the `r r$n.obs` cases presented for analysis, `r r$n.keep` are retained, so the number of deleted cases due to missing data is `r r$n.obs - r$n.keep`.
+
+### Estimated Model
+The analysis of the model begins with the estimation of each sample regression coefficient, $b_j$, from the training data. Of greater interest is each corresponding population value, $\beta_j$, in the _population model_. 
+$$\hat Y_{Expenditure} = \beta_0 + \beta_1 X_{Population}$$
+The associated inferential analyses for each estimate are the hypothesis test and confidence interval.
+Each _t_-test evaluates the _null hypothesis_ that the corresponding _individual_ population regression coefficient is 0, here for the $j^{th}$ coefficient. 
+$$H_0: \beta_j=0$$
+$$H_1: \beta_j \ne 0$$
+The confidence interval provides the range of likely values of the corresponding $\beta_j$. Each 95% confidence interval is the margin of error on either side of the corresponding estimated intercept or slope coefficient, $b_j$. 
+
+```{r, echo=FALSE}
+r$out_estimates
+```
+This estimated model is the linear function with estimated numeric coefficients that yield a fitted value of Expenditure from the provided data value of Population.
+$$\hat Y_{Expenditure} = `r xP(r$coefficients[1],4)` `r ifelse(sign(r$coefficients)==1, "+", "-")[2]` `r xP(abs(r$coefficients[2]),4)` X_{Population}$$
+
+This predictor variable has a _p_-value less than or equal to $\alpha$ = 0.05: _`r xAnd(names(which(r$pvalues[2:length(r$pvalues)] <= 0.05)))`_. 
+
+To extend the results beyond this sample to the population from which the sample was obtained, interpret the meaning of this corresponding coefficient in terms of its confidence interval. 
+With 95% confidence, for each additional unit  of  Population, on average, Expenditure changes somewhere between `r xP(r$cilb[2],4,)` to `r xP(r$ciub[2],4,)`.
+
+## Model Fit
+An estimated model is not necessarily useful. A first consideration of usefulness is that the model fits the data from which it is estimated, the training data. To what extent do the values fitted by the model, $\hat Y_{Expenditure}$, match the corresponding training data values $Y_{Expenditure}$? Are the individual residuals, $e_i$, typically close to their mean of zero, or are they scattered about the regression line with relatively large positive values and negative values? There are more considerations of usefulness, but a model that cannot fit its own training data is generally not useful.
+
+### Partitioning of Variance
+
+The analysis of fit depends on the adequacy of the model to account for the variability of the data values of Expenditure, expressed in model notation as  $Y_{Expenditure}$. The core component of variability is the _sum of squares_, short for the sum of some type of squared deviations. The _total variability_ of $Y_{Expenditure}$ depends on the deviations of its data values from its mean, $Y_{Expenditure} - \bar Y_{Expenditure}$, and then the resulting sums of squares, $SS_{Expenditure}$. 
+
+The analysis of the residuals, $e = Y_{Expenditure} - \hat Y_{Expenditure}$, follows from the corresponding sum of squares, the value minimized by the least squares estimation procedure, $\sum e^2_i$ = $SS_{Residual}$. This residual sum of squares represents variation of $Y_{Expenditure}$ _not_ accounted for by $\hat Y_{Expenditure}$. The complement to the residual sum of squares is the Model (or Regression) sum of squares, the deviations of the fitted values about the mean, $\hat Y_{Expenditure} - \bar Y_{Expenditure}$. 
+
+The analysis of variance (ANOVA) partitions this total sum of squares into the residual variability, $\sum e^2_i$, and the Model sum of squares, $SS_{Model}$. The ANOVA table displays these various sources of variation. 
+
+```{r, echo=FALSE}
+r$out_anova
+```
+$$SS_{Expenditure} = SS_{Model} + SS_{Residual} = `r xP(r$anova_model["ss"],4)` + `r xP(r$anova_residual["ss"],4)` = `r xP(r$anova_total["ss"],4,, semi=TRUE)` $$
+
+This decomposition of the sums of squares of Expenditure into what is explained by the model, and what is not explained, is fundamental to assessing the fit of the model. 
+
+### Fit Indices
+
+From the ANOVA two types of primary indicators of fit are derived: standard deviation of the residuals and several $R^2$ statistics. 
+
+```{r, echo=FALSE}
+r$out_fit
+```
+
+The _standard deviation of the residuals_, $s_e$, directly assesses the variability of the data values of Expenditure about the corresponding fitted values for the training data, the particular data set from which the model was estimated. Each mean square in the ANOVA table is a variance, a sum of squares divided by the corresponding degrees of freedom, _df_. By definition, the standard deviation, $s_e$ is the square root of the mean square of the residuals. 
+$$s_e = \sqrt{MS_{Residual}} = \sqrt{`r xP(r$anova_residual["ms"],4)`} = `r xP(r$se,4,, semi=TRUE)`$$
+To interpret $s_e$ = `r xP(r$se,4,)`, consider the estimated range of 95% of the values of a normally distributed variable, which depends on the corresponding 2.5% cutoff from the $t$-distribution for df=`r r$anova_residual["df"]`: `r xP(-qt(0.025, df=r$anova_residual["df"]),3)`. 
+$$95\% \;  Range: 2 * t_{cutoff} * s_e = 2 * `r xP(-qt(0.025, df=r$anova_residual["df"]),3)` * `r xP(r$se,4)` = 
+`r xP(r$resid_range,4,, semi=TRUE)`$$
+
+This range of the residuals for the fitted values is the lower limit of the range of forecasting error presented later. 
+
+A second type of fit index is $R^2$, the proportion of the overall variability of response variable Expenditure that is accounted for by the model, applied to the training data, expressed either in terms of $SS_{Residual}$ or $SS_{Model}$. 
+$$R^2 = 1 - \frac{SS_{Residual}}{SS_{Expenditure}} = \frac{SS_{Model}}{SS_{Expenditure}} = \frac{`r xP(r$anova_model["ss"],4)`} {`r xP(r$anova_total["ss"],4)`} = `r xP(r$Rsq,3)` $$ 
+Unfortunately when any new predictor variable is added to a model, useful or not, $R^2$ necessarily increases. Use the adjusted version, $R^2_{adj}$, to more appropriately compare models estimated from the same training data with different numbers of predictors. $R^2_{adj}$ helps to avoid overfitting a model because it only increases if a new predictor variable added to the model improves the fit more than would be expected by chance. The adjustment considers the number of predictor variables relative to the number of rows of data (cases). Accomplish this adjustment with the degrees of freedom, to transform each Sum of Squares to the corresponding Mean Squares_ 
+$$R^2_{adj} = 1 - \frac{SS_{Residual} \; / \; `r r$anova_residual["df"]`}
+{SS_{Expenditure} \; / \; `r r$anova_total["df"]`} = 1 - \frac{MS_{Residual}}{MS_{Expenditure}} = 1 - \frac{`r xP(r$anova_residual["ms"],4)`} {`r xP(r$anova_total["ms"],4)`} = `r xP(r$Rsqadj,3)`$$
+From this analysis compare $R^2$ = `r xP(r$Rsq,3)` to the adjusted value of $R^2_{adj}$ = `r xP(r$Rsqadj,3)`, a difference of `r xP((r$Rsq-r$Rsqadj), 3)`. A large difference indicates that too many predictor variables in the model for the available data yielded an overfitted model. 
+
+Both $R^2$ and $R^2_{adj}$ describe the fit of the model to the training data. To generalize to forecasting accuracy on _new_ data, evaluate the fit of the model to forecasts using the _predictive residual_ (PRE). To calculate the predictive residual for a row of data (case), first estimate the model with that case deleted, that is, from all the remaining cases in the training data, an example of a _case-deletion_ statistic. Repeat for all rows of data. $SS_{PRE}$, or PRESS, is the sum of squares of all the predictive residuals in a data set. From $SS_{PRE}$ define the predictive $R^2$, $R^2_{PRESS}$. 
+$$R^2_{PRESS} = 1 - \frac{SS_{PRE}}{SS_{Expenditure}} = 1 - \frac{`r xP(r$PRESS,4)`} {`r xP(r$anova_total["ss"],4)`} = `r xP(r$RsqPRESS,3)` $$ 
+
+Because an estimated model at least to some extent overfits the training data, $R^2_{PRESS}$ = `r xP(r$RsqPRESS,3)` is lower than both $R^2$ and $R^2_{adj}$. The value is lower, but is the more appropriate value to understand how well the model forecasts new values beyond the training from which it was estimated. 
+
+`r reject <- "Reject the null hypothesis of the tested regression coefficients equal to 0 because of the small _p_-value of"`
+`r accept <- "No difference of the coefficients from zero detected because of the relatively large _p_-value of"`
+
+## Relation Between Expenditure and Population
+
+
+How do the variables in the model relate to each other? The correlation of response variable Expenditure with predictor variable Population should be high. 
+The correlation of Expenditure with Population in the training data is $r$ = `r xP(r$cor[2,1],3)`. 
+
+Visually summarize the relationship of Expenditure and Population in the model with the scatterplot. 
+
+```{r, echo=FALSE}
+regPlot(r, 1, pred.intervals=FALSE)  # 1: scatter plot 
+```
+
+## Analysis of Residuals and Influence
+Values of Expenditure fitted by the estimated model do not generally equal the corresponding data values_ Which cases (rows of data) contribute the most to this lack of fit? 
+The identification of cases that have a large residual and/or undue influence on the estimation of the model helps detect potential outliers. For each case, in addition to the data values, fitted value and corresponding residual, the analysis provides the following values: 
+
+* _residual_: Value of the response variable Expenditure minus its fitted value, $e = Y_{Expenditure} - \hat Y_{Expenditure}$ 
+* _rstudent_: Externally Studentized residual, standardized value of the residual from a model estimated without the case present 
+* _dffits_: Standardized difference between a fitted value with and without the case present 
+* _cooks_: Cook's Distance, the aggregate influence of the case on all the fitted values with each fitted value calculated with the case deleted 
+
+
+```{r, echo=FALSE}
+r$out_residuals
+```
+From this analysis the five largest Cook's distances: `r xP(r$resid.max[1],2)`, `r xP(r$resid.max[2],2)`, `r xP(r$resid.max[3],2)`, `r xP(r$resid.max[4],2)` and `r xP(r$resid.max[5],2)`.
+
+An informal criterion for evaluating the size of Cook's distance is a cutoff value of 1 to indicate too large of a large size. 
+The following case has a value more than the cutoff of 1: Row 1. For larger sample sizes this guideline should be reduced as the influence of any case tends to diminish as the sample size increases. The best basis for understanding a high Cook's distance value is to also consider the substantive nature of the underlying data values of the case and to verify if they were sampled from the same population as the remaining cases. 
+
+## Model Validity
+The residuals should be independent, normal random variables with a mean of zero and constant variance. 
+
+### Distribution of Residuals
+For the inferential analyses to be valid, the residuals should be normally distributed. 
+Violation of normality does not bias the estimates, but it does render the inferential tests invalid. 
+
+```{r, echo=FALSE}
+regPlot(r, 2)  # 2: distribution of residuals
+```
+
+
+### Fitted Values vs Residuals
+The residuals should represent random variation, free of any pattern or structure. They should satisfy the _homoscedasticity_ assumption, randomly scattered about 0, with approximately the same level of variability across the range of the fitted values within a horizontal band around the zero-line. Otherwise they demonstrate _heteroskedasticity_. 
+
+```{r, echo=FALSE}
+regPlot(r, 3)  # 3: scatter plot of fitted with residuals
+```
