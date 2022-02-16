@@ -1,0 +1,64 @@
+---
+title: "Exercise 4a - Stat 145 (TSA)"
+author: "Mariano Niño Oliva"
+date: "6/14/2021"
+output: 
+  html_document:
+    keep_md: true
+---
+
+```{r setup, include=FALSE}
+#Load Packages
+library(tseries)  # Unit Root Tests
+library(forecast) # For auto.arima
+library(x13binary) # Deseasonalization
+library(seasonalview) # Deseasonalization
+```
+
+##Setting up the working directory
+
+```{r wd}
+setwd("C:/Users/Admin/Desktop/Shut Down/Academics/Major Subjects/Stat 145") 
+
+```
+
+This section reads the pder.txt file that contain the peso to dollar exchange rate dataset. 
+```{r pder}
+pder <- read.table("pder.txt", header=T)
+pder
+```
+
+
+The following block of R codes converts the pder data frame into a time series data with monthly frequency starting from January 1980. This is necessary for conducting an Augmented Dickey-Fuller (ADF) Test on the data.
+```{r pder.ts}
+pder.ts <- ts(pder$pder,frequency=12,start=c(1980,1))
+pder.ts
+```
+
+
+## Using the adf.test function, we conduct the adf.test for the pder.ts. Note that this block of codes contain different pder.ts for the differencing of the time series data. The first adf test outputted a p-value of *0.7149* under the **null hypothesis of non-stationarity**. In this case, we did not have a strong evidence to conclude stationarity of the time series data.
+
+The subsequent adf test for differenced pder data and differenced log(pder) data have resulted to a p-value of *0.01* which means at 5% level of significance, the null hypothesis of non-stationarity is **rejected**.
+```{r adf}
+adf.test(pder.ts, alternative="stationary")
+adf.test(diff(pder.ts), alternative="stationary")
+adf.test(diff(log(pder.ts)), alternative="stationary")
+```
+##Plots for the time series data and the differenced time series data: 
+
+Note that upon differencing, we have now observed stationarity in the time series of the peso dollar exchange rate
+
+```{r pder, echo=FALSE}
+plot(pder.ts)
+plot(diff(pder.ts))
+plot(log(diff(pder.ts)))
+```
+##ACF PACF 
+
+The ACF and PACF is used to measure the direction and strength of linear relationship between pairs of variables. In this case we use the functions to compare the relationship of the PDER pairs to an existing model process. 
+
+Looking at the output of the codes below, the **ACF cuts off abruptly after** *lag 2* while the PACF graph shows that it **tapers off gradually**. This movement is similar with the Moving Average (2) or *MA(2) process*. This means that the time series for the PDER dataset might **follow the MA(2) Process**.
+```{r acf pacf}
+acf(diff(pder.ts))
+pacf(diff(pder.ts))
+```
